@@ -1,7 +1,16 @@
 {
   "name": "koishi-plugin-sleepsign-in",
-  "description": "晚安签到插件",
   "version": "1.0.0",
+  "koishi": {
+    "description": {
+      "en": "Sleep check-in plugin",
+      "zh": "晚安签到插件"
+    },
+    "service": {
+      "requried": ["database"]
+    },
+    "preview": true
+  },
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -9,6 +18,11 @@
     "dist"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/FenglinCYW/sleepsign-in",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FenglinCYW/sleepsign-in.git"
+  },
   "keywords": [
     "chatbot",
     "koishi",
