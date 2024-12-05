@@ -12,7 +12,7 @@
 
 ### 使用 **koishi WebUI** 或者 **Koishi桌面程序** 安装
 
-在插件市场搜索 `koishi-plugin-sleepsign-in` 并安装即可。
+在插件市场搜索 `sleepsign-in` 并安装即可。
 
 ### 使用命令行安装
 
