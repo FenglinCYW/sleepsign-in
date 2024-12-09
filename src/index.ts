@@ -120,6 +120,7 @@ export function apply(ctx: Context, config: IConfig) {
         const succeedMsg = config.succeedMsg
         .replace('-rank', (await ctx.database.get('user_sign_in', {sign_time: dateStr})).length.toString())
         .replace('-time', date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+        
         return succeedMsg
       }catch(err){
         logger.error('晚安失败，原因：' + err)
