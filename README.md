@@ -60,4 +60,3 @@ npm i koishi-plugin-sleepsign-in
 * 修复更新数据库失败的问题
 
 </div>
-
