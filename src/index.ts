@@ -20,8 +20,8 @@ export const Config: Schema<IConfig> = Schema.intersect([
   Schema.union([
     Schema.object({
       enableSignTime: Schema.const(true).required(),
-      signStartTime: Schema.number().default(22).description('签到开始时间'),
-      signEndTime: Schema.number().default(6).description('签到结束时间')
+      signStartTime: Schema.number().min(1).max(24).default(22).description('签到开始时间'),
+      signEndTime: Schema.number().min(1).max(24).default(6).description('签到结束时间')
     }),
     Schema.object({}),
   ]).description('签到时间配置') as Schema,
@@ -70,7 +70,6 @@ export function apply(ctx: Context, config: IConfig) {
     // 判断消息内容是否是晚安
     if (session.content === config.goodNightMsg) {
       let date = new Date()
-      // logger.info('当前时间：' + hour)
       // 判断是否在签到时间内
       if (config.enableSignTime) {
         let hour = date.getHours()
@@ -82,6 +81,8 @@ export function apply(ctx: Context, config: IConfig) {
           if (hour < config.signStartTime || hour >= config.signEndTime) {
             return (h('at', { id: session.userId }) + config.missedSignMsg)
           }
+        } else {
+          logger.error('签到时间配置错误，请检查插件配置！')
         }
       } else {
         let hour = date.getHours()
