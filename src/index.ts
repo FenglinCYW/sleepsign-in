@@ -78,7 +78,7 @@ export function apply(ctx: Context, config: IConfig) {
             return (h('at', { id: session.userId }) + config.missedSignMsg)
           }
         } else if (config.signEndTime - config.signStartTime < 0) {
-          if (hour < config.signStartTime || hour >= config.signEndTime) {
+          if (!(hour <= config.signEndTime || hour >= config.signStartTime)) {
             return (h('at', { id: session.userId }) + config.missedSignMsg)
           }
         } else {
@@ -86,7 +86,7 @@ export function apply(ctx: Context, config: IConfig) {
         }
       } else {
         let hour = date.getHours()
-        if (hour < 6 || hour >= 22) {
+        if (!(hour <= 6 || hour >= 22)) {
           return (h('at', { id:session.userId }) + config.missedSignMsg)
         }
       }
