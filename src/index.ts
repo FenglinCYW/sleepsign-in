@@ -1,4 +1,4 @@
-import { Context, h, Schema } from 'koishi'
+import { Context, h, is, Schema } from 'koishi'
 
 export const name = 'sleepsign-in'
 export const inject = ['database']
@@ -67,32 +67,14 @@ export function apply(ctx: Context, config: IConfig) {
 
   // 监听消息事件 如果是晚安则进行签到
   ctx.middleware(async (session, next) => {
+    let date = new Date()
     // 判断消息内容是否是晚安
     if (session.content === config.goodNightMsg) {
-      let date = new Date()
       // 判断是否在签到时间内
-      if (config.enableSignTime) {
-        let hour = date.getHours()
-        if (config.signEndTime - config.signStartTime > 0) {
-          if (!(hour >= config.signStartTime && hour <= config.signEndTime)) {
-            return (h('at', { id: session.userId }) + config.missedSignMsg)
-          }
-        } else if (config.signEndTime - config.signStartTime < 0) {
-          if (!(hour <= config.signEndTime || hour >= config.signStartTime)) {
-            return (h('at', { id: session.userId }) + config.missedSignMsg)
-          }
-        } else {
-          logger.error('签到时间配置错误，请检查插件配置！')
-        }
-      } else {
-        let hour = date.getHours()
-        if (!(hour <= 6 || hour >= 22)) {
-          return (h('at', { id:session.userId }) + config.missedSignMsg)
-        }
-      }
-
+      if (isDuringSignTime(date, config))
+        return (h('at', { id: session.userId }) + ' ' + config.missedSignMsg)
       try {
-        let dateStr = date.toLocaleDateString()
+        let dateStr = date.toLocaleString()
         const rows = await ctx.database.get('user_sign_in', {
           user_id: session.userId
         })
@@ -106,9 +88,8 @@ export function apply(ctx: Context, config: IConfig) {
           })
         } else {
           // 签到时间是否是今天
-          if (rows[0].sign_time === dateStr) {
-            return (h('at', { id: session.userId }) + config.repeatSignMsg)
-          }
+          if (!isDuringSignTime(new Date(rows[0].sign_time), config))
+            return (h('at', { id: session.userId }) + ' ' + config.repeatSignMsg)
           // 存在则更新
           await ctx.database.set('user_sign_in', {
             user_id: session.userId
@@ -121,11 +102,11 @@ export function apply(ctx: Context, config: IConfig) {
         const succeedMsg = config.succeedMsg
         .replace('-rank', (await ctx.database.get('user_sign_in', {sign_time: dateStr})).length.toString())
         .replace('-time', date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
-        
+          
         return succeedMsg
       }catch(err){
         logger.error('晚安失败，原因：' + err)
-        return (h('at', { id: session.userId }) + '晚安失败，请稍后再试')
+        return (h('at', { id: session.userId }) + ' ' + '晚安失败，请稍后再试')
       }
     } else {
       return next()
@@ -139,13 +120,31 @@ export function apply(ctx: Context, config: IConfig) {
         user_id: session.userId
       })
       if (rows.length > 0) {
-        await session.send(h('at', { id: session.userId }) + "你已经晚安" + rows[0].count + "次了")
+        await session.send(h('at', { id: session.userId }) + ' ' + "你已经晚安" + rows[0].count + "次了")
       }else{
-        await session.send(h('at', { id: session.userId }) + "你还没有晚安过呢")
+        await session.send(h('at', { id: session.userId }) + ' ' + "你还没有晚安过呢")
       }
     }catch(err){
       logger.error('查询失败，原因：' + err)
-      await session.send(h('at', { id: session.userId }) + '查询失败，请稍后再试')
+      await session.send(h('at', { id: session.userId }) + ' ' + '查询失败，请稍后再试')
     }
   })
 }
+
+function isDuringSignTime(date: Date, config: IConfig) : boolean {
+  let startTime = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate(), config.signStartTime, 0, 0)
+  let endTime = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate(), config.signEndTime, 0, 0)
+  // 时间是否跨天
+  const t = startTime > endTime
+
+  // 交换时间
+  if (t)
+    [startTime, endTime] = [endTime, startTime]
+
+  if (date >= startTime && date <= endTime)
+    return t ? false:true
+  else
+    return t ? true:false
+  
+}
+
