@@ -71,7 +71,7 @@ export function apply(ctx: Context, config: IConfig) {
     // 判断消息内容是否是晚安
     if (session.content === config.goodNightMsg) {
       // 判断是否在签到时间内
-      if (isDuringSignTime(date, config))
+      if (!isDuringSignTime(date, config))
         return (h('at', { id: session.userId }) + ' ' + config.missedSignMsg)
       try {
         let dateStr = date.toLocaleString()
